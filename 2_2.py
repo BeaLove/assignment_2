@@ -43,7 +43,7 @@ def calculate_likelihood(tree_topology, theta, beta):
     num_nodes, num_values = len(theta), len(theta[0])
     #sample_values = np.where(not np.isnan(beta))
     s_node_value = np.zeros((num_nodes, num_values))
-    for i in np.flip(beta):
+    for i, value in enumerate(np.flip(beta)):
         node = len(beta) - i - 1
         #print("node", node, "value", value)
         if not np.isnan(value):
@@ -57,13 +57,15 @@ def calculate_likelihood(tree_topology, theta, beta):
                 if parent == float(node):
                     children.append(index)
             #print("children ", children)
-            child_probabilities = []
-            for value in range(num_values):
+            for val in range(num_values):
+                child_probabilities = []
                 for child in children:
                     s_child = s_node_value[child, :]
-                    #print("s_child", s_child, "type ", type(s_child))
-
-                    prob_given_below = s_child * theta[child][:][value]
+                    print("s_child", s_child, "type ", type(s_child))
+                    theta_val = theta[child][:][int(val)]
+                    #print("THETA", theta_val)
+                    prob_given_below = s_child * theta_val
+                    #print("given below", prob_given_below)
                     #prob_given_below = []
                     child_probabilities.append(sum(prob_given_below))
                     #for i in range(num_values):
@@ -78,12 +80,13 @@ def calculate_likelihood(tree_topology, theta, beta):
                     #print("child probabilities:", child_probabilities)
                 product = child_probabilities[0]*child_probabilities[1]
                 #print("product", product)
-                s_node_value[node, :] = product
+                s_node_value[node, int(val)] = product
     likelihood = 1
-    print("s_node_value", s_node_value)
-    for value in beta:
+    #print("s_node_value", s_node_value)
+    likelihood = np.sum(s_node_value[0])
+    '''for value in beta:
         if not np.isnan(value):
-            likelihood *= s_node_value[0][int(value)]
+            likelihood *= s_node_value[0][int(value)]'''
 
     '''for node, value in enumerate(beta):
         #print(node)
