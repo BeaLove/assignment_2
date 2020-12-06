@@ -57,30 +57,17 @@ def calculate_likelihood(tree_topology, theta, beta):
                 if parent == float(node):
                     children.append(index)
             #print("children ", children)
-            for val in range(num_values):
-                child_probabilities = []
+            child_probabilities = []
+            for parent_val in range(num_values):
                 for child in children:
-                    s_child = s_node_value[child, :]
-                    print("s_child", s_child, "type ", type(s_child))
-                    theta_val = theta[child][:][int(val)]
-                    #print("THETA", theta_val)
-                    prob_given_below = s_child * theta_val
-                    #print("given below", prob_given_below)
-                    #prob_given_below = []
-                    child_probabilities.append(sum(prob_given_below))
-                    #for i in range(num_values):
-                        #print("theta array ", theta[child][i], type(theta[child][i]))
-
-                        #print("prob given below: ", prob_given_below)
-                        #for j in range(num_values):
-                            #probability = s_node_value[child, j]*theta[child][i][j]
-                            #prob_given_below.append(probability)
-                        #print("prob given below ", prob_given_below)
-
-                    #print("child probabilities:", child_probabilities)
+                    j_vals = []
+                    for j in range(num_values):
+                        j_val = s_node_value[child, j] * theta[child][j][parent_val]
+                        j_vals.append(j_val)
+                    child_probabilities.append(np.sum(j_vals))
                 product = child_probabilities[0]*child_probabilities[1]
                 #print("product", product)
-                s_node_value[node, int(val)] = product
+                s_node_value[node, int(parent_val)] = product
     likelihood = 1
     #print("s_node_value", s_node_value)
     likelihood = np.sum(s_node_value[0])
@@ -96,6 +83,7 @@ def calculate_likelihood(tree_topology, theta, beta):
 
     return likelihood
 
+def likelihood_recursive()
 
 def main():
     print("Hello World!")
