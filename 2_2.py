@@ -24,6 +24,7 @@
 
 import numpy as np
 from Tree import Tree
+import time
 from Tree import Node
 
 
@@ -43,47 +44,31 @@ def calculate_likelihood(tree_topology, theta, beta):
     num_nodes, num_values = len(theta), len(theta[0])
     #sample_values = np.where(not np.isnan(beta))
     s_node_value = np.zeros((num_nodes, num_values))
+    ##Work through tree backwards from leaves to root:
     for i, value in enumerate(np.flip(beta)):
         node = len(beta) - i - 1
-        #print("node", node, "value", value)
         if not np.isnan(value):
             s_node_value[node, int(value)] = 1
         else:
-            #print(s_node_value)
-            ##get children:
+            ##get children of the node:
             children = []
             for index, parent in enumerate(tree_topology):
-                #print("parent: ", parent, "node ", node)
                 if parent == float(node):
                     children.append(index)
-            #print("children ", children)
-            child_probabilities = []
-            for parent_val in range(num_values):
-                for child in children:
-                    j_vals = []
-                    for j in range(num_values):
-                        j_val = s_node_value[child, j] * theta[child][j][parent_val]
-                        j_vals.append(j_val)
-                    child_probabilities.append(np.sum(j_vals))
-                product = child_probabilities[0]*child_probabilities[1]
-                #print("product", product)
-                s_node_value[node, int(parent_val)] = product
-    likelihood = 1
-    #print("s_node_value", s_node_value)
-    likelihood = np.sum(s_node_value[0])
-    '''for value in beta:
-        if not np.isnan(value):
-            likelihood *= s_node_value[0][int(value)]'''
 
-    '''for node, value in enumerate(beta):
-        #print(node)
-        if np.isnan(value):
-            #print("row", s_node_value[int(node), :])
-            likelihood *= sum(s_node_value[int(node), :])'''
+            for parent_val in range(num_values):
+                #For each possible value of parent, get probability of children over all child's possible values
+                child_probabilities = []
+                for child in children:
+                    child_probabilities.append(sum(s_node_value[child]*theta[child][parent_val][:]))
+                product = child_probabilities[0]*child_probabilities[1]
+
+                s_node_value[node, int(parent_val)] = product
+
+    likelihood = np.sum(s_node_value[0]*theta[0])
 
     return likelihood
 
-def likelihood_recursive()
 
 def main():
     print("Hello World!")
@@ -91,7 +76,9 @@ def main():
 
     print("\n1. Load tree data from file and print it\n")
 
-    filename = "data/q2_2/q2_2_small_tree.pkl"  # "data/q2_2/q2_2_medium_tree.pkl", "data/q2_2/q2_2_large_tree.pkl"
+    #filename = "data/q2_2/q2_2_small_tree.pkl"
+    #filename = "data/q2_2/q2_2_medium_tree.pkl"
+    filename = "data/q2_2/q2_2_large_tree.pkl"
     t = Tree()
     t.load_tree(filename)
     t.print()
@@ -101,15 +88,14 @@ def main():
     # These filtered samples already available in the tree object.
     # Alternatively, if you want, you can load them from corresponding .txt or .npy files
 
-    #beta = t.filtered_samples[0]
-    #sample_likelihood = calculate_likelihood(t.get_topology_array(), t.get_theta_array(), beta)
-    #print("likelihood: ", sample_likelihood)
+    start_time = time.time()
     for sample_idx in range(t.num_samples):
         beta = t.filtered_samples[sample_idx]
         print("\n\tSample: ", sample_idx, "\tBeta: ", beta)
         sample_likelihood = calculate_likelihood(t.get_topology_array(), t.get_theta_array(), beta)
         print("\tLikelihood: ", sample_likelihood)
-
+    end_time = time.time()
+    print("Likelihood computed in %f seconds" %(end_time-start_time))
 
 if __name__ == "__main__":
     main()
